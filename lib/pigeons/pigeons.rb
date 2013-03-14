@@ -1,9 +1,7 @@
 
-require 'pigeon_letter' unless defined?(PigeonLetter)
-require 'pigeon_mailer' unless defined?(PigeonMailer)
-
 # Pigeon controls the Carrier Pigeon system
-# Note, we're going to try to make this not require Rails
+# Note, we're going to try to make this not require Rails - but it may require some aspects of ActiveSupport, etc.
+
 module Pigeons
 
   class Settings
@@ -13,7 +11,7 @@ module Pigeons
     class_attribute :bases, :conditionals, :events
 
     # Set Defaults
-    self.pigeon_config_file = "#{Rails.root}/config/pigeons.json" if defined?(Rails)
+    self.pigeon_config_file = nil
     self.cooldown = 2.days
 
     # Initialize
@@ -33,6 +31,12 @@ module Pigeons
     '''Assembles all base entities deserving a post in this flight'''
 
     # First, we're going to check that PigeonMailer and PigeonLetter exist (and are as we'd expect)
+    require 'pigeon_letter' unless defined?(PigeonLetter)
+    require 'pigeon_mailer' unless defined?(PigeonMailer)
+
+    # We'll set a natural default location if Rails is defined
+    Settings.pigeon_config_file ||= "#{Rails.root}/config/pigeons.json" if defined?(Rails)
+
     raise PigeonError::PigeonConfigError, "Must create PigeonMailer mailer (TODO: instructions)" unless defined?(PigeonMailer) && ( PigeonMailer < ActionMailer::Base )
     raise PigeonError::PigeonConfigError, "Must create PigeonLetter model (TODO: instructions)" unless defined?(PigeonLetter) && ( PigeonLetter < ActiveRecord::Base )
 
