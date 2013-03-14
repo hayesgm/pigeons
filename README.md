@@ -16,6 +16,12 @@ Or install it yourself as:
 
     $ gem install pigeons
 
+## Installation
+
+Pigeons requires a few changes to your app.  Specifically, you'll need a PigeonLetter model in your ORM, and a PigeonMailer module to deliver emails.  These can be created by calling:
+
+    rails generate pigeons:install
+
 ## Usage
 
 TODO: Write usage instructions here

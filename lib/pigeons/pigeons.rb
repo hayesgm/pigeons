@@ -1,3 +1,6 @@
+require 'active_support/all'
+require 'active_record'
+require 'action_mailer'
 
 # Pigeon controls the Carrier Pigeon system
 # Note, we're going to try to make this not require Rails - but it may require some aspects of ActiveSupport, etc.
