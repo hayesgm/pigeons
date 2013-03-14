@@ -1,5 +1,6 @@
-require 'pigeon_letter' rescue nil
-require 'pigeon_mailer' rescue nil
+
+require 'pigeon_letter' unless defined?(PigeonLetter)
+require 'pigeon_mailer' unless defined?(PigeonMailer)
 
 # Pigeon controls the Carrier Pigeon system
 # Note, we're going to try to make this not require Rails

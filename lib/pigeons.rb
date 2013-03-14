@@ -1,9 +1,9 @@
 require "pigeons/version"
 
-require 'lib/pigeons'
-require 'lib/logger'
-require 'lib/elements'
-require 'lib/scope'
-require 'lib/checks'
-require 'lib/errors'
-require 'lib/extensions'
+require 'pigeons/pigeons'
+require 'pigeons/logger'
+require 'pigeons/elements'
+require 'pigeons/scope'
+require 'pigeons/checks'
+require 'pigeons/errors'
+require 'pigeons/extensions'

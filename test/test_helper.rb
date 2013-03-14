@@ -1,7 +1,15 @@
 ENV["RAILS_ENV"] = "test"
-require File.expand_path('../../../../config/environment', __FILE__)
 
+require File.expand_path('../test_helper', __FILE__)
+require 'active_support/all'
+require 'active_record'
+require 'action_mailer'
 require 'test/unit'
+
+# Some defines expected by pigeons
+class PigeonLetter < ActiveRecord::Base; end
+class PigeonMailer < ActionMailer::Base; end
+
 require 'pigeons'
 require 'mocha'
 include Mocha
@@ -133,6 +141,3 @@ class Level < ActiveRecord::Base
   belongs_to :pixie
 end
 
-class PigeonLetter < ActiveRecord::Base
-
-end
