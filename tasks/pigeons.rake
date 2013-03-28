@@ -18,8 +18,13 @@ namespace :pigeons do
     p [ 'Pigeons::', 'Rake::Pigeons::Check', 'Completed' ]
   end
 
+  # Arguments
+  # Days:: Number of days to run simulation
+  # Debug:: Should we print extensive debug information?
+  # Send:: If 'yes' will truly deliver letters, otherwise don't send letters.  Alt: set send = <action_name> and only that letter will be sent
+  # Force:: Force simulation to run in production environment
   desc "Run a simulation by day of Pigeon letters to be sent."
-  task :flight_test, [ :days, :debug, :force ] => :environment do |t, args|
+  task :flight_test, [ :days, :debug, :send, :force ] => :environment do |t, args|
     unless Rails.env.staging? || Rails.env.development? || Rails.env.test? # Note, due to mocks, etc. this is not considered safe to run on any environment besides develpoment and staging
       unless args[:force].blank?
         puts "\n\e[0;31m   ######################################################################" 
@@ -33,7 +38,7 @@ namespace :pigeons do
         proceed = STDIN.gets[0..0] rescue nil 
         exit unless proceed == 'y' || proceed == 'Y'
       else
-        raise "Refusing to run Flight Test on anything but Development and Staging (try rake pigeons:flight_test[days,debug,*force])"
+        raise "Refusing to run Flight Test on anything but Development and Staging (try rake pigeons:flight_test[days,debug,send,*force])"
       end
     end
 
@@ -51,7 +56,11 @@ namespace :pigeons do
     # TODO: I'd like to be able to do this without degrading the environment with stubs, but that's probably not going to happen
     time_class = class << ::Time; self; end
     pigeon_class = class << ::PigeonMailer; self; end
-    PigeonMailer.action_methods.each { |mailer_action| pigeon_class.send(:define_method, mailer_action) { |*args| return true } }
+
+    # Allow sending of letters during simulation
+    unless %w(true t yes y 1).contains(args[:send])
+      PigeonMailer.action_methods.each { |mailer_action| pigeon_class.send(:define_method, mailer_action) { |*args| return true } unless mailer_action == args[:send] }
+    end
 
     PigeonLetter.transaction do
       begin
