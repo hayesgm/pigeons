@@ -19,12 +19,12 @@ namespace :pigeons do
   end
 
   # Arguments
-  # Days:: Number of days to run simulation
-  # Debug:: Should we print extensive debug information?
-  # Send:: If 'yes' will truly deliver letters, otherwise don't send letters.  Alt: set send = <action_name> and only that letter will be sent
-  # Force:: Force simulation to run in production environment
+  # days:: Number of days to run simulation (default: 15)
+  # debug:: Should we print extensive debug information?
+  # true_send:: If 'yes' will truly deliver letters, otherwise don't send letters.  Alt: set send = <action_name> and only that letter will be sent
+  # force:: Force simulation to run in production environment
   desc "Run a simulation by day of Pigeon letters to be sent."
-  task :flight_test, [ :days, :debug, :force, :send ] => :environment do |t, args|
+  task :flight_test, [ :days, :debug, :true_send, :force ] => :environment do |t, args|
     unless Rails.env.staging? || Rails.env.development? || Rails.env.test? # Note, due to mocks, etc. this is not considered safe to run on any environment besides develpoment and staging
       unless args[:force].blank?
         puts "\n\e[0;31m   ######################################################################" 
@@ -45,7 +45,7 @@ namespace :pigeons do
     p [ 'Pigeons::', 'Rake::Pigeons::FlightTest', 'Initiating', args ]
     days = args[:days] ? args[:days].to_i : 15 # Default to 15 days?
     debug = args[:debug] || false
-    send = args[:send]
+    true_send = args[:true_send]
 
     # Stub both Time.now and Time.current
     reality = Time.now
@@ -60,8 +60,8 @@ namespace :pigeons do
 
     # Allow sending of letters during simulation
 
-    unless %w(true t yes y 1).include?(send)
-      PigeonMailer.action_methods.each { |mailer_action| pigeon_class.send(:define_method, mailer_action) { |*args| return true } unless mailer_action == send }
+    unless %w(true t yes y 1).include?(true_send)
+      PigeonMailer.action_methods.each { |mailer_action| pigeon_class.send(:define_method, mailer_action) { |*args| return true } unless mailer_action == true_send || ActionMailer::Base.action_methods.include?(mailer_action) || mailer_action =~ /.*[_]callbacks[=?]?$/ } # action_methods shouldn't return mailer internals, but it does, so let's skip what's defined in ActionMailer::Base
     end
 
     PigeonLetter.transaction do
