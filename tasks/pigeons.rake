@@ -24,7 +24,7 @@ namespace :pigeons do
   # Send:: If 'yes' will truly deliver letters, otherwise don't send letters.  Alt: set send = <action_name> and only that letter will be sent
   # Force:: Force simulation to run in production environment
   desc "Run a simulation by day of Pigeon letters to be sent."
-  task :flight_test, [ :days, :debug, :send, :force ] => :environment do |t, args|
+  task :flight_test, [ :days, :debug, :force, :send ] => :environment do |t, args|
     unless Rails.env.staging? || Rails.env.development? || Rails.env.test? # Note, due to mocks, etc. this is not considered safe to run on any environment besides develpoment and staging
       unless args[:force].blank?
         puts "\n\e[0;31m   ######################################################################" 
@@ -38,13 +38,14 @@ namespace :pigeons do
         proceed = STDIN.gets[0..0] rescue nil 
         exit unless proceed == 'y' || proceed == 'Y'
       else
-        raise "Refusing to run Flight Test on anything but Development and Staging (try rake pigeons:flight_test[days,debug,send,*force])"
+        raise "Refusing to run Flight Test on anything but Development and Staging (try rake pigeons:flight_test[days,debug,*force,send])"
       end
     end
 
     p [ 'Pigeons::', 'Rake::Pigeons::FlightTest', 'Initiating', args ]
     days = args[:days] ? args[:days].to_i : 15 # Default to 15 days?
     debug = args[:debug] || false
+    send = args[:send]
 
     # Stub both Time.now and Time.current
     reality = Time.now
@@ -58,8 +59,9 @@ namespace :pigeons do
     pigeon_class = class << ::PigeonMailer; self; end
 
     # Allow sending of letters during simulation
-    unless %w(true t yes y 1).contains(args[:send])
-      PigeonMailer.action_methods.each { |mailer_action| pigeon_class.send(:define_method, mailer_action) { |*args| return true } unless mailer_action == args[:send] }
+
+    unless %w(true t yes y 1).include?(send)
+      PigeonMailer.action_methods.each { |mailer_action| pigeon_class.send(:define_method, mailer_action) { |*args| return true } unless mailer_action == send }
     end
 
     PigeonLetter.transaction do
